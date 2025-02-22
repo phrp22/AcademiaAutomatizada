@@ -57,15 +57,17 @@ def create_db():
             print("🔌 Conexão fechada corretamente após criação das tabelas.")
 
 # Função para conectar ao banco de dados
+@st.cache_resource
 def get_db_connection():
-    """Cria uma conexão com o banco de dados Supabase."""
-    if DATABASE_URL is None:
-        st.error("❌ Erro: Conexão ao banco de dados não configurada.")
+    """Garante que não abrimos múltiplas conexões ao banco."""
+    if not DATABASE_URL:
+        st.error("❌ ERRO: URL do banco de dados não foi definida.")
         return None
+
     try:
-        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+        conn = psycopg2.connect(DATABASE_URL, sslmode="require", connect_timeout=10)
         return conn
-    except psycopg2.Error as e:
+    except psycopg2.OperationalError as e:
         st.error(f"❌ Erro ao conectar ao banco: {e}")
         return None
 
